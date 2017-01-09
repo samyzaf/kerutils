@@ -1,2 +1,2 @@
 # kerutils
-Python Keras Utilites
+Python Keras Utilities
