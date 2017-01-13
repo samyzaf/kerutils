@@ -49,8 +49,8 @@ class FitMonitor(Callback):
         print "Train end:", t
         dt = self.end_time - self.start_time
         if self.verbose:
-            h = dt.total_seconds()/3600.0
-            print "Total run time: %.3f hours" % (h,)
+            time_str = format_time(dt.total_seconds())
+            print "Total run time:", time_str
             print "max_acc = %f  epoch = %d" % (self.max_acc, self.max_acc_epoch)
             print "max_val_acc = %f  epoch = %d" % (self.max_val_acc, self.max_val_acc_epoch)
         if self.filename:
@@ -85,9 +85,9 @@ class FitMonitor(Callback):
             sys.stdout.write('.')
             if p%5 == 0:
                 dt = datetime.datetime.now() - self.start_time
-                h = dt.total_seconds()/3600.0
-                fmt = '%02d%% epoch=%d, acc=%f, loss=%f, val_acc=%f, val_loss=%f, time=%.3f hours\n'
-                vals = (p,    epoch,    acc,    loss,    val_acc,    val_loss,    h)
+                time_str = format_time(dt.total_seconds())
+                fmt = '%02d%% epoch=%d, acc=%f, loss=%f, val_acc=%f, val_loss=%f, time=%s\n'
+                vals = (p,    epoch,    acc,    loss,    val_acc,    val_loss,    time_str)
                 sys.stdout.write(fmt % vals)
             sys.stdout.flush()
             self.progress = p
@@ -294,4 +294,15 @@ def save_model_summary(model, filename):
     sys.stdout = current_stdout
     f.close()
     return filename
+
+def format_time(seconds):
+    if seconds < 400:
+        s = float(seconds)
+        return "%.1f seconds" % (s,)
+    elif seconds < 4000:
+        m = seconds / 60.0
+        return "%.2f minutes" % (m,)
+    else:
+        h = seconds / 3600.0
+        return "%.2f hours" % (h,)
 

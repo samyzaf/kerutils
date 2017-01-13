@@ -1,0 +1,140 @@
+h1 {
+    color: white;
+    background-color: #204E66;
+    padding: 0.5em;
+    margin-bottom: 0.25em;
+    /* opacity: 0.9; */
+}
+
+h2 {
+    color: white;
+    background-color: #331a00;
+    padding: 0.5em;
+    margin-bottom: 0.25em;
+}
+
+h3 {
+    color: white;
+    background-color: black;
+    padding: 0.5em;
+    margin-bottom: 0.25em;
+}
+
+div.cell { /* Tunes the space between cells */
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+div.text_cell_render h1 { /* Main titles bigger, centered */
+    font-family: 'Arial';
+    /* line-height: 1.4em; */
+    text-align: left;
+    margin-bottom: 0.25em;
+}
+
+div.text_cell_render h2 { /*  Parts names nearer from text */
+    font-family: 'Arial';
+    margin-bottom: 0.25em;
+}
+
+div.text_cell_render h3 { /* Main titles */
+    font-family: 'Arial';
+    /* font-size: 2.2em; */
+    /* line-height: 1.4em; */
+    text-align: left;
+    margin-bottom: 0.25em;
+}
+
+div.text_cell_render { /* Customize text cells */
+    font-family: 'Times New Roman';
+    /* font-family: 'Tahoma'; */
+    font-size: 1.25em;
+    /* font-size: 18px; */
+    line-height: 1.32em;
+    /* line-height: 24px; */
+    padding-left: 0em;
+    padding-right: 2em;
+}
+
+div.output_area pre {
+   /* font-family: Consolas, monospace; */
+   /* font-size: small; */
+}
+
+p {
+    margin: 0.25em;
+    /* margin-bottom: 0.25em; */
+}
+
+ol {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+ol li {
+    margin-bottom: 8px;
+}
+
+ul {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+ul li {
+    margin-bottom: 8px ;
+}
+
+/* Make the notebook cells take almost all available width */
+.container {
+    /* width: 90% !important; */
+    /* margin-left: 4%; */
+    /* margin-right: auto; */
+}   
+
+
+/* Prevent the edit cell highlight box from getting clipped;
+ * important so that it also works when cell is in edit mode*/
+div.cell.selected {
+    border-left-width: 1px !important;
+}
+
+/**************  Table Style *************/
+
+body {
+    margin: 0;
+    font-family: Helvetica;
+}
+
+table.dataframe {
+    border-collapse: collapse;
+    border: none;
+}
+
+table.dataframe tr {
+    border: none;
+}
+
+table.dataframe td, table.dataframe th {
+    margin: 0;
+    border: 1px solid tan;
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+    font-size: 0.9em;
+}
+
+table.dataframe th:not(:empty) {
+    background-color: #fec;
+    text-align: left;
+    font-weight: normal;
+}
+
+table.dataframe tr:nth-child(2) th:empty {
+    border-left: none;
+    border-right: 1px dashed #888;
+}
+
+table.dataframe td {
+    border: 2px solid #ccf;
+    background-color: #f4f4ff;
+}
+
