@@ -118,6 +118,38 @@ def current_time(fmt='%Y-%m-%d %H:%M:%S'):
     t = datetime.datetime.strftime(datetime.datetime.now(), fmt)
     return t
 
+def read_file(file):
+    f=open(file,"r")
+    text=f.read()
+    f.close()
+    return text
+
+def write_file(file, data):
+    f=open(file,"w")
+    f.write(data)
+    f.close()
+    return file
+
+def append_file(file, *data_args):
+    f=open(file,"a+")
+    for data in data_args:
+        f.write(data)
+    f.close()
+    return file
+
+def memory_usage(pid=0):
+    import psutil
+    if pid == 0:
+        pid = os.getpid()
+    p = psutil.Process(pid)
+    m = p.memory_info()
+    vms = "%.2fM" % (m.vms / (1024.0**2))
+    rss = "%.2fM" % (m.rss / (1024.0**2))
+    return vms, rss
+
+
+
+
 
 
 
