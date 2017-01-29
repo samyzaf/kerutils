@@ -25,7 +25,7 @@ class Progmeter:
             sys.stdout.flush()
             self.done = True
             t = time.time() - self.start
-            print "Time: %.2f seconds" % t
+            print("Time: %.2f seconds" % t)
             return
         p = int(self.index / self.chunk)
         if p > self.percent:

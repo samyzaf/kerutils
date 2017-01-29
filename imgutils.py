@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from scipy.misc import imread, imresize, imsave
 import matplotlib.pyplot as plt
@@ -13,7 +14,7 @@ def load_data(train_data_file, test_data_file, **opt):
     train_class_size = opt.get('train_class_size', None)
     test_class_size = opt.get('test_class_size', None)
 
-    print "Loading training data set:", train_data_file
+    print("Loading training data set:", train_data_file)
     X_train, y_train, Y_train, features = load_set(
         train_data_file,
         normalize=normalize,
@@ -22,7 +23,7 @@ def load_data(train_data_file, test_data_file, **opt):
         verbose=False,
     )
 
-    print "Loading validation data set:", test_data_file
+    print("Loading validation data set:", test_data_file)
     X_test, y_test, Y_test, _ = load_set(
         test_data_file,
         normalize=normalize,
@@ -33,9 +34,9 @@ def load_data(train_data_file, test_data_file, **opt):
 
     data_shape = X_train.shape
     item_shape = data_shape[1:]
-    print data_shape[0], 'training samples'
-    print X_test.shape[0], 'validation samples'
-    print 'Image shape:', item_shape
+    print(data_shape[0], 'training samples')
+    print(X_test.shape[0], 'validation samples')
+    print('Image shape:', item_shape)
     return X_train, y_train, Y_train, X_test, y_test, Y_test
 
 def load_set(data_file, **opt):
@@ -51,18 +52,18 @@ def load_set(data_file, **opt):
     item_shape = data_shape[1:]
     ndim = len(item_shape)
     if verbose:
-        print X.shape[0], 'samples'
-        print "Item shape:", item_shape
+        print(X.shape[0], 'samples')
+        print("Item shape:", item_shape)
 
     # The original data of each image is a NxNx3 matrix of integers from 0 to 255.
     # We need to scale it down to floats in in a balanced unit interval
     if normalize:
         if verbose:
-            print "Normalizing data"
+            print("Normalizing data")
         X = data_normalization(X)
     if flatten:
         if verbose:
-            print "Flattening data"
+            print("Flattening data")
         X = X.reshape((num_samples, np.prod(item_shape)))
 
     Y = np_utils.to_categorical(y, num_classes)
@@ -76,7 +77,7 @@ def load_h5(h5file, **opt):
     f = h5py.File(h5file, 'r')
     num_images = int(f.get('num_images').value)
     features = f.get('features').value.tolist()
-    print "Total num images in file:", num_images
+    print("Total num images in file:", num_images)
 
     I = range(0, num_images)
     if sample is None:
@@ -86,7 +87,7 @@ def load_h5(h5file, **opt):
     else:
         N = sample
         I = random.sample(I, N)
-        print "Sampling %d images from %d" % (N, num_images)
+        print("Sampling %d images from %d" % (N, num_images))
 
     pm = Progmeter(N, prompt="Load progress: ")
     for i in I:
@@ -120,7 +121,7 @@ def data_normalization(X):
     return X
 
 def save_h5_from_data(savefile, X, y, features):
-    print "Writing file:", savefile
+    print("Writing file:", savefile)
     pm = Progmeter(len(X))
     f = h5py.File(savefile, 'w')
     i = 0
@@ -142,12 +143,12 @@ def save_h5_from_file(inpfile, savefile, class_size):
 def check_data_set(model, h5file, sample=None):
     X, y, features = load_h5(h5file, sample=sample)
     num_classes = len(features)
-    print "Loaded %d images" % (X.shape[0],)
+    print("Loaded %d images" % (X.shape[0],))
     X = data_normalization(X)
     Y = np_utils.to_categorical(y, num_classes)
     loss, acc = model.evaluate(X, Y)
-    print "Data shape:", X.shape
-    print "accuracy   = %.6f loss = %.6f" % (acc, loss)
+    print("Data shape:", X.shape)
+    print("accuracy   = %.6f loss = %.6f" % (acc, loss))
     return acc, loss
 
 def stddev_scaling(X):
@@ -168,13 +169,13 @@ def stddev_scaling(X):
 
 # old code: should be done with h5py
 # def np_save_data(npfile, X_train, y_train, Y_train, X_test, y_test, Y_test):
-#     print "Saving data to file:", npfile
+#     print("Saving data to file:", npfile)
 #     np.savez(npfile, X_train=X_train, y_train=y_train, Y_train=Y_train, X_test=X_test, y_test=y_test, Y_test=Y_test)
 #     return npfile
 #
 # old code: should be done with h5py
 # def np_restore_data(npfile):
-#     print "Restoring data from npfile:", npfile
+#     print("Restoring data from npfile:", npfile)
 #     d = np.load(npfile)
 #     names = ['X_train', 'y_train', 'Y_train', 'X_test', 'y_test', 'Y_test']
 #     return (d[key] for key in names)
@@ -198,15 +199,15 @@ def h5_get(h5file, key):
 
 def h5_imshow(h5file, i):
     im = h5_get(h5file, 'img_' + str(i))
-    print "Class:", h5_get(h5file, 'cls_' + str(i))
-    print "Shape:", im.shape
+    print("Class:", h5_get(h5file, 'cls_' + str(i)))
+    print("Shape:", im.shape)
     plt.imshow(im, cmap='jet', interpolation='none')
     plt.show()
 
 def view_false_predictions(model, X, Y, offset=0, interpolation='nearest'):
-    print "Computing false_pred and y_pred"
+    print("Computing false_pred and y_pred")
     y_pred, false_preds = get_false_predictions(model, X, Y)
-    print "Total false predictions:", len(false_preds)
+    print("Total false predictions:", len(false_preds))
     for i,(x,y,p) in enumerate(false_preds[offset:offset+15]):
         plt.subplot(3, 5, i+1)
         plt.imshow(x, cmap='jet', interpolation=interpolation)
@@ -288,11 +289,11 @@ def check_img_dups(h5file_list):
             pm.advance()
         f.close()
 
-    print "dict length =", len(dig)
+    print("dict length =", len(dig))
 
     for key in dig:
         count = len(dig[key])
         if count >= 2:
-            print "Dups: ", count, dig[key]
+            print("Dups: ", count, dig[key])
 
 
