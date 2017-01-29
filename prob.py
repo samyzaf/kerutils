@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 fact = math.factorial
 from decimal import *
@@ -18,11 +19,11 @@ def fit_prob(p, n, k):
     s = Decimal(0)
     for i in range(k,n):
         s = s + n_choose_k(n,i) * p**i * (1-p)**(n-i)
-    print s
+    print(s)
 
 def test1():
-    print "5 choose 2 =", n_choose_k(5, 2)
-    print "500 choose 200 =", n_choose_k(500, 200)
+    print("5 choose 2 =", n_choose_k(5, 2))
+    print("500 choose 200 =", n_choose_k(500, 200))
 
 if __name__ == '__main__':
     #fit_prob(0.5, 5000, 3500)
