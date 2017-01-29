@@ -125,7 +125,7 @@ def save_h5_from_data(savefile, X, y, features):
     pm = Progmeter(len(X))
     f = h5py.File(savefile, 'w')
     i = 0
-    for img,cls in izip(X, y):
+    for img,cls in zip(X, y):
         f.create_dataset('img_' + str(i), data=img, compression='gzip')
         f.create_dataset('cls_' + str(i), data=cls)
         pm.advance()

@@ -3,7 +3,6 @@ import os, sys, time, datetime, fnmatch
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-from itertools import izip
 
 # data normalizations (scaling down all values to the interval [0,1])
 def unit_scale(X):
@@ -19,7 +18,7 @@ def balanced_sample(X, Y, classes, n):
     d = {}
     for c in classes:
         d[c] = []
-    for x,y in izip(X,Y):
+    for x,y in zip(X,Y):
         d[y].append((x,y))
 
     XY_samp = []
@@ -28,7 +27,7 @@ def balanced_sample(X, Y, classes, n):
             raise Exception("Sampling size %d exceeds class size %s" % (n,c))
         XY_samp.extend(random.sample(d[c], n))
     random.shuffle(XY_samp)
-    X_samp, Y_samp = izip(*XY_samp)
+    X_samp, Y_samp = zip(*XY_samp)
     return np.asarray(X_samp), np.asarray(Y_samp)
 
 def dlsplit(X, Y, N):
@@ -76,7 +75,7 @@ def balance_classes(X, Y, nb_classes, size=None, csvfile=None):
     else:
         f = open(csvfile, 'w')
         pc = Progcount(size)
-        for x,y in izip(X_bal, y_bal):
+        for x,y in zip(X_bal, y_bal):
             v = np.append(x,y)
             f.write(','.join([str(i) for i in v]))
             f.write('\n')
@@ -102,7 +101,7 @@ def calc_class_weight(X, Y, nb_classes, e=1.0):
 
 def get_false_predictions(model, X, Y):
     y_pred = model.predict_classes(X)
-    false_preds = [(x,y,p) for (x,y,p) in izip(X, Y, y_pred) if y != p]
+    false_preds = [(x,y,p) for (x,y,p) in zip(X, Y, y_pred) if y != p]
     return y_pred, false_preds
 
 def barchart(X, Y, nb_classes):
