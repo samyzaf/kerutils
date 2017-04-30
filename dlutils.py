@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 import os, sys, time, datetime, fnmatch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,9 +44,9 @@ def dlsplit(X, Y, N):
     y_test = Y[cosamp]
     return X_train, y_train, X_test, y_test
 
-def balance_classes(X, Y, nb_classes, size=None, csvfile=None):
+def balance_classes(X, Y, n_classes, size=None, csvfile=None):
     d = {}
-    for y in range(nb_classes):
+    for y in range(n_classes):
         d[y] = []
     for i,x in enumerate(X):
         y = Y[i]
@@ -82,9 +83,9 @@ def balance_classes(X, Y, nb_classes, size=None, csvfile=None):
             pc.advance()
         f.close()
 
-def calc_class_weight(X, Y, nb_classes, e=1.0):
+def calc_class_weight(X, Y, n_classes, e=1.0):
     d = {}
-    for y in range(nb_classes):
+    for y in range(n_classes):
         d[y] = 0
     for i,x in enumerate(X):
         y = Y[i]
@@ -104,19 +105,30 @@ def get_false_predictions(model, X, Y):
     false_preds = [(x,y,p) for (x,y,p) in zip(X, Y, y_pred) if y != p]
     return y_pred, false_preds
 
-def barchart(X, Y, nb_classes):
+def barchart(X, Y, n_classes):
     d = {}
-    for y in range(nb_classes):
+    for y in range(n_classes):
         d[y] = 0
     for i,x in enumerate(X):
         d[Y[i]] += 1
-    values = [d[y] for y in range(nb_classes)]
-    plt.bar(range(nb_classes), values, align='center')
+    values = [d[y] for y in range(n_classes)]
+    plt.bar(range(n_classes), values, align='center')
     plt.show()
 
 def current_time(fmt='%Y-%m-%d %H:%M:%S'):
     t = datetime.datetime.strftime(datetime.datetime.now(), fmt)
     return t
+
+def format_time(seconds):
+    if seconds < 400:
+        s = float(seconds)
+        return "%.1f seconds" % (s,)
+    elif seconds < 4000:
+        m = seconds / 60.0
+        return "%.2f minutes" % (m,)
+    else:
+        h = seconds / 3600.0
+        return "%.2f hours" % (h,)
 
 def read_file(file):
     f=open(file,"r")
@@ -146,10 +158,4 @@ def memory_usage(pid=0):
     vms = "%.2fM" % (m.vms / (1024.0**2))
     rss = "%.2fM" % (m.rss / (1024.0**2))
     return vms, rss
-
-
-
-
-
-
 

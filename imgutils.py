@@ -1,11 +1,12 @@
 from __future__ import print_function
+
 import numpy as np
 from scipy.misc import imread, imresize, imsave
 import matplotlib.pyplot as plt
 import h5py, hashlib
-from progmeter import Progmeter
-from dlutils import *
+from ezprogbar import ProgressBar
 from keras.utils import np_utils
+from dlutils import *
 
 # Load training and test data
 def load_data(train_data_file, test_data_file, **opt):
@@ -89,7 +90,7 @@ def load_h5(h5file, **opt):
         I = random.sample(I, N)
         print("Sampling %d images from %d" % (N, num_images))
 
-    pm = Progmeter(N, prompt="Load progress: ")
+    pm = ProgressBar(N, prompt="Load progress: ")
     for i in I:
         img_key = 'img_' + str(i)
         cls_key = 'cls_' + str(i)
@@ -122,7 +123,7 @@ def data_normalization(X):
 
 def save_h5_from_data(savefile, X, y, features):
     print("Writing file:", savefile)
-    pm = Progmeter(len(X))
+    pm = ProgressBar(len(X))
     f = h5py.File(savefile, 'w')
     i = 0
     for img,cls in zip(X, y):
@@ -274,7 +275,7 @@ def check_img_dups(h5file_list):
     for h5file in h5file_list:
         f = h5py.File(h5file, 'r')
         num_images = int(f.get('num_images').value)
-        pm = Progmeter(num_images)
+        pm = ProgressBar(num_images)
         for i in range(num_images):
             img_key = 'img_' + str(i)
             a = np.array(f.get(img_key))
