@@ -1,12 +1,12 @@
-from __future__ import print_function
-
 import numpy as np
-from scipy.misc import imread, imresize, imsave
+from imageio import imread, imsave
+#from PIL import Image
+from skimage.transform import resize
 import matplotlib.pyplot as plt
 import h5py, hashlib
 from ezprogbar import ProgressBar
-from keras.utils import np_utils
-from dlutils import *
+from tensorflow.keras.utils import to_categorical
+from .dlutils import *
 
 # Load training and test data
 def load_data(train_data_file, test_data_file, **opt):
@@ -67,7 +67,7 @@ def load_set(data_file, **opt):
             print("Flattening data")
         X = X.reshape((num_samples, np.prod(item_shape)))
 
-    Y = np_utils.to_categorical(y, num_classes)
+    Y = to_categorical(y, num_classes)
     return X, y, Y, features
 
 def load_h5(h5file, **opt):
@@ -75,12 +75,19 @@ def load_h5(h5file, **opt):
     class_size = opt.get('class_size', None)
     images = []
     classes = []
-    f = h5py.File(h5file, 'r')
-    num_images = int(f.get('num_images').value)
-    features = f.get('features').value.tolist()
+    #f = h5py.File(h5file, 'r')
+    f = h5open(h5file, 'r')
+    num_images = int(f.get('num_images')[()])
+    features = f.get('features')[()].tolist()
     print("Total num images in file:", num_images)
 
-    I = range(0, num_images)
+    I = []
+    for i in range(0,num_images+2):
+        img_key = f'img_{i}'
+        if f.get(img_key) is None:
+            continue
+        I.append(i)
+
     if sample is None:
         N = num_images
     elif sample > num_images:
@@ -92,10 +99,10 @@ def load_h5(h5file, **opt):
 
     pm = ProgressBar(N, prompt="Load progress: ")
     for i in I:
-        img_key = 'img_' + str(i)
-        cls_key = 'cls_' + str(i)
+        img_key = f'img_{i}'
+        cls_key = f'cls_{i}'
         img = np.array(f.get(img_key))
-        cls = f.get(cls_key).value
+        cls = f.get(cls_key)[()]
         images.append(img)
         classes.append(cls)
         pm.advance()
@@ -125,7 +132,7 @@ def save_h5_from_data(savefile, X, y, features):
     print("Writing file:", savefile)
     pm = ProgressBar(len(X))
     f = h5py.File(savefile, 'w')
-    i = 0
+    i = 1
     for img,cls in zip(X, y):
         f.create_dataset('img_' + str(i), data=img, compression='gzip')
         f.create_dataset('cls_' + str(i), data=cls)
@@ -146,7 +153,7 @@ def check_data_set(model, h5file, sample=None):
     num_classes = len(features)
     print("Loaded %d images" % (X.shape[0],))
     X = data_normalization(X)
-    Y = np_utils.to_categorical(y, num_classes)
+    Y = to_categorical(y, num_classes)
     loss, acc = model.evaluate(X, Y)
     print("Data shape:", X.shape)
     print("accuracy   = %.6f loss = %.6f" % (acc, loss))
@@ -163,8 +170,8 @@ def stddev_scaling(X):
 #     X_train, y_train, Y_train, X_test, y_test, Y_test, num_classes = load_data()
 #     X_train, y_train = balanced_sample(X_train, y_train, classes, train_class_size)
 #     X_test, y_test = balanced_sample(X_test, y_test, classes, test_class_size)
-#     Y_train = np_utils.to_categorical(y_train, nb_classes)
-#     Y_test = np_utils.to_categorical(y_test, nb_classes)
+#     Y_train = to_categorical(y_train, nb_classes)
+#     Y_test = to_categorical(y_test, nb_classes)
 #     np_save_data(npfile, X_train, y_train, Y_train, X_test, y_test, Y_test)
 #     return npfile
 
@@ -194,7 +201,7 @@ def h5_overwrite(h5file, key, value):
 
 def h5_get(h5file, key):
     f = h5py.File(h5file, 'r')
-    value = f.get(key).value
+    value = f.get(key)[()]
     f.close()
     return value
 
@@ -222,12 +229,12 @@ def read_images(h5file):
     images = []
     classes = []
     f = h5py.File(h5file, 'r')
-    num_images = int(f.get('num_images').value)
+    num_images = int(f.get('num_images')[()])
     for i in range(num_images):
         img_key = 'img_' + str(i)
         cls_key = 'cls_' + str(i)
         img = np.array(f.get(img_key))
-        cls = f.get(cls_key).value
+        cls = f.get(cls_key)[()]
         images.append(img)
         classes.append(cls)
     f.close()
@@ -246,7 +253,9 @@ def load_and_scale_images(img_files, shape):
 
 # example: rescale_image("cat.jpg", (32,32,3))
 def rescale_image(image_file, shape):
-    im = imresize(imread(image_file, 0, 'RGB'), shape)
+    #im = imresize(imread(image_file, 0, 'RGB'), shape) # dprecated from scipy
+    #numpy.array(Image.fromarray(arr).resize())         # If PIL is used
+    im = resize(imread(image_file, 0, 'RGB'), shape)
     return im
 
 def classify_images(model, img_files, shape):
@@ -274,7 +283,7 @@ def check_img_dups(h5file_list):
     dig = {}
     for h5file in h5file_list:
         f = h5py.File(h5file, 'r')
-        num_images = int(f.get('num_images').value)
+        num_images = int(f.get('num_images')[()])
         pm = ProgressBar(num_images)
         for i in range(num_images):
             img_key = 'img_' + str(i)
@@ -296,5 +305,3 @@ def check_img_dups(h5file_list):
         count = len(dig[key])
         if count >= 2:
             print("Dups: ", count, dig[key])
-
-
