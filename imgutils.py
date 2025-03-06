@@ -76,7 +76,7 @@ def load_h5(h5file, **opt):
     images = []
     classes = []
     #f = h5py.File(h5file, 'r')
-    f = h5open(h5file, 'r')
+    f = h5open(h5file)
     num_images = int(f.get('num_images')[()])
     features = f.get('features')[()].tolist()
     print("Total num images in file:", num_images)
@@ -305,3 +305,4 @@ def check_img_dups(h5file_list):
         count = len(dig[key])
         if count >= 2:
             print("Dups: ", count, dig[key])
+
