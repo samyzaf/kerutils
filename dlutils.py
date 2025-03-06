@@ -1,9 +1,19 @@
-from __future__ import print_function
-
-import os, sys, time, datetime, fnmatch
+import os, sys, time, datetime, fnmatch, pickle, shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import requests
+from zipfile import ZipFile
+import h5py
+
+in_colab = False
+try:
+  import google.colab
+  in_colab = True
+except ImportError as e:
+  in_colab = False  # Not in Google cloud ...
+if in_colab:
+    from google.colab import files
 
 # data normalizations (scaling down all values to the interval [0,1])
 def unit_scale(X):
@@ -149,6 +159,63 @@ def append_file(file, *data_args):
     f.close()
     return file
 
+#def h5open(hfile, mode='r'):
+#    if "https:" in hfile:
+#        url = hfile
+#        hfile = zdownload(hfile)
+#        print(f"Downloaded {hfile} from {url}")
+#    if hfile[-4:] == ".zip":
+#        hfile = unzip(hfile)
+#    f = h5py.File(hfile, mode)
+#    return f
+
+def h5open(hfile):
+    if "https:" in hfile:
+        url = hfile
+        hfile = url.split('/')[-1]
+        download(url, hfile)
+        print(f"Downloaded {hfile} from {url}")
+    if hfile[-4:] == ".zip":
+        with ZipFile(hfile, 'r') as zipref:
+            zipref.extractall('.')
+        hfile = hfile[:-4]
+    f = h5py.File(hfile, 'r')
+    return f
+
+
+def url_get(url, unZip=True):
+    target = url.split('/')[-1]
+    response = requests.get(url)
+    f = open(target, "wb")
+    f.write(response.content)
+    f.close()
+    print(f"Downloaded {target} from {url}")
+    if unZip and target[-4:] == ".zip":
+        ztarget = target
+        target = unzip(target)
+        os.remove(ztarget)
+    return target
+
+def unzip(zfile, dest="."):
+    print(f"Extracting zip file {zfile} ...")
+    with ZipFile(zfile, 'r') as zipref:
+        zipref.extractall(dest)
+    file = zfile[:-4]
+    print("Done.")
+    return file
+
+def file_upload():
+    uploaded = files.upload()
+
+def file_download(path):
+    files.download(path)
+
+def download(url, target):
+    response = requests.get(url)
+    f = open(target, "wb")
+    f.write(response.content)
+    f.close()
+
 def memory_usage(pid=0):
     import psutil
     if pid == 0:
@@ -158,4 +225,3 @@ def memory_usage(pid=0):
     vms = "%.2fM" % (m.vms / (1024.0**2))
     rss = "%.2fM" % (m.rss / (1024.0**2))
     return vms, rss
-
