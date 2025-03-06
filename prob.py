@@ -1,4 +1,3 @@
-from __future__ import print_function
 import math
 fact = math.factorial
 from decimal import *
@@ -31,5 +30,4 @@ if __name__ == '__main__':
 
 # TeX Formula:
 # probability = \sum_{i=k}^{n} \binom{n}{i} \cdot p^{i} \cdot (1-p)^{n-i}
-
 
