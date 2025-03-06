@@ -169,7 +169,7 @@ def append_file(file, *data_args):
 #    f = h5py.File(hfile, mode)
 #    return f
 
-def h5open(hfile):
+def h5open(hfile, mode="r"):
     if "https:" in hfile:
         url = hfile
         hfile = url.split('/')[-1]
@@ -179,7 +179,7 @@ def h5open(hfile):
         with ZipFile(hfile, 'r') as zipref:
             zipref.extractall('.')
         hfile = hfile[:-4]
-    f = h5py.File(hfile, 'r')
+    f = h5py.File(hfile, mode)
     return f
 
 
