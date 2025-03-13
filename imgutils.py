@@ -123,6 +123,7 @@ def data_normalization(X):
         X = X.reshape(data_shape)
     X = X.astype('float32')
     X = X - np.mean(X, axis = 0)
+    #? X = X - np.min(X, axis = 0)
     X = X / 255
     #X /= np.std(X, axis = 0) # normalize
     #X = X / (X.max(axis=0) - X.min(axis=0))
