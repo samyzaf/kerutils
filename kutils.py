@@ -1,9 +1,14 @@
 #import tensorflow.keras as keras
+import tensorflow as tf
+from tensorflow.keras import layers, initializers
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
-from tensorflow.keras.layers import ReLU, PReLU, ELU, LeakyReLU, GaussianNoise # SReLU is no more..
-from tensorflow.keras.layers import Convolution2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.layers import Layer, ReLU, PReLU, ELU, LeakyReLU, GaussianNoise # SReLU is no more..
+from tensorflow.keras.activations import swish
+from tensorflow.keras.layers import Convolution2D, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, SeparableConv2D, BatchNormalization, GlobalAveragePooling2D
+from tensorflow.keras.optimizers import SGD, Adam
+from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.metrics import BinaryAccuracy
 from tensorflow.keras.constraints import MaxNorm
 from keras_tqdm import TQDMNotebookCallback
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -208,13 +213,13 @@ class BreakOnMonitor(Callback):
 
 #-------------------------------------------------------------
 
-# h - history object returned by Keras model method
+# h - history object returned by Keras model.fit method
 def show_scores(model, h, X_train, Y_train, X_test, Y_test):
     loss, accuracy = model.evaluate(X_train, Y_train, verbose=0)
     print("Training: accuracy   = %.6f loss = %.6f" % (accuracy, loss))
     loss, accuracy = model.evaluate(X_test, Y_test, verbose=0)
     print("Validation: accuracy = %.6f loss = %.6f" % (accuracy, loss))
-    if 'val_accuracy' in h.history:
+    if 'val_acc' in h.history or 'val_accuracy' in h.history:
         print("Over fitting score   = %.6f" % over_fitting_score(h))
         print("Under fitting score  = %.6f" % under_fitting_score(h))
     print("Params count:", model.count_params())
@@ -232,9 +237,16 @@ def show_scores(model, h, X_train, Y_train, X_test, Y_test):
 
 def view_accuracy(h):
     # Accuracy history graph
-    plt.plot(h.history['accuracy'])
-    if 'val_accuracy' in h.history:
+    if 'acc' in h.history:
+        plt.plot(h.history['acc'])
+    elif 'accuracy' in h.history:
+        plt.plot(h.history['accuracy'])
+
+    if 'val_acc' in h.history:
+        plt.plot(h.history['val_acc'])
+    elif 'val_accuracy' in h.history:
         plt.plot(h.history['val_accuracy'])
+
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
@@ -256,9 +268,15 @@ def view_loss(h):
 def over_fitting_score(h):
     gap = []
     n = len(h.epoch)
+
+    if 'acc' in h.history:
+        acc = 'acc' ; val_acc = 'val_acc'
+    else:
+        acc = 'accuracy' ; val_acc = 'val_accuracy'
+
     for i in h.epoch:
-        accuracy = h.history['accuracy'][i]
-        val_accuracy = h.history['val_accuracy'][i]
+        accuracy = h.history[acc][i]
+        val_accuracy = h.history[val_acc][i]
         # late gaps get higher weight ..
         gap.append( i * abs(accuracy - val_accuracy))
     ofs = sum(gap) / (n * (n-1) / 2)
@@ -266,9 +284,13 @@ def over_fitting_score(h):
 
 def under_fitting_score(h):
     gap = []
+    if 'acc' in h.history:
+        acc = 'acc' ; val_acc = 'val_acc'
+    else:
+        acc = 'accuracy' ; val_acc = 'val_accuracy'
     for i in h.epoch:
-        accuracy = h.history['accuracy'][i]
-        val_accuracy = h.history['val_accuracy'][i]
+        accuracy = h.history[acc][i]
+        val_accuracy = h.history[val_acc][i]
         gap.append(abs(accuracy - val_accuracy))
     gap = np.array(gap)
     return gap.mean()
@@ -310,3 +332,35 @@ def save_model_summary(model, filename):
     sys.stdout = current_stdout
     f.close()
     return filename
+
+class SReLU(Layer):
+    def __init__(self, **kwargs):
+        super(SReLU, self).__init__(**kwargs)
+    
+    def build(self, input_shape):
+        self.t_r = self.add_weight(name='t_r', shape=(1,), initializer='zeros', trainable=True)
+        self.t_l = self.add_weight(name='t_l', shape=(1,), initializer='zeros', trainable=True)
+        self.a_r = self.add_weight(name='a_r', shape=(1,), initializer='ones', trainable=True)
+        self.a_l = self.add_weight(name='a_l', shape=(1,), initializer='ones', trainable=True)
+    
+    def call(self, inputs):
+        return tf.where(inputs >= self.t_r, self.t_r + self.a_r * (inputs - self.t_r),
+                tf.where(inputs <= self.t_l, self.t_l + self.a_l * (inputs - self.t_l), inputs))
+
+class SReLU2(Layer):
+    def __init__(self, tl=-1.0, al=0.1, tr=1.0, ar=0.1, **kwargs):
+        super(SReLU2, self).__init__(**kwargs)
+        self.tl = tf.Variable(tl, trainable=True)
+        self.al = tf.Variable(al, trainable=True)
+        self.tr = tf.Variable(tr, trainable=True)
+        self.ar = tf.Variable(ar, trainable=True)
+
+    def call(self, inputs):
+        return tf.where(inputs < self.tl, self.tl + self.al * (inputs - self.tl),
+                tf.where(inputs > self.tr, self.tr + self.ar * (inputs - self.tr), inputs))
+
+def mish(x):
+    return x * tf.math.tanh(tf.math.softplus(x))
+
+#Usage
+#layer = SReLU()
