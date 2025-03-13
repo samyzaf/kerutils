@@ -183,18 +183,23 @@ def h5open(hfile, mode="r"):
     return f
 
 
-def url_get(url, unZip=True):
-    target = url.split('/')[-1]
+def download(url, target=None, decompress=True):
+    if not target:
+        target = os.path.split(url)[1]
     response = requests.get(url)
-    f = open(target, "wb")
-    f.write(response.content)
-    f.close()
+    with open(target, "wb") as f:
+        f.write(response.content)
     print(f"Downloaded {target} from {url}")
-    if unZip and target[-4:] == ".zip":
-        ztarget = target
-        target = unzip(target)
-        os.remove(ztarget)
+    if decompress:
+        if target[-4:] == ".zip":
+            ztarget = target
+            target = unzip(target)
+            os.remove(ztarget)
+        else:
+            raise Exception(f"Unsupported decompression: {target}")
     return target
+
+url_get = download
 
 def unzip(zfile, dest="."):
     print(f"Extracting zip file {zfile} ...")
@@ -209,12 +214,6 @@ def file_upload():
 
 def file_download(path):
     files.download(path)
-
-def download(url, target):
-    response = requests.get(url)
-    f = open(target, "wb")
-    f.write(response.content)
-    f.close()
 
 def memory_usage(pid=0):
     import psutil
