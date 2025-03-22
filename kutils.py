@@ -1,4 +1,3 @@
-#import tensorflow.keras as keras
 import tensorflow as tf
 from tensorflow.keras import layers, initializers
 from tensorflow.keras.models import Sequential, load_model
