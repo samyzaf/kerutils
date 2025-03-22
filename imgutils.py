@@ -97,7 +97,7 @@ def load_h5(h5file, **opt):
         I = random.sample(I, N)
         print("Sampling %d images from %d" % (N, num_images))
 
-    pm = ProgressBar(N, prompt="Load progress: ")
+    pb = ProgressBar(N, prompt="Load progress: ")
     for i in I:
         img_key = f'img_{i}'
         cls_key = f'cls_{i}'
@@ -105,7 +105,7 @@ def load_h5(h5file, **opt):
         cls = f.get(cls_key)[()]
         images.append(img)
         classes.append(cls)
-        pm.advance()
+        pb.advance()
     f.close()
 
     X = np.array(images)
@@ -131,13 +131,13 @@ def data_normalization(X):
 
 def save_h5_from_data(savefile, X, y, features):
     print("Writing file:", savefile)
-    pm = ProgressBar(len(X))
+    pb = ProgressBar(len(X))
     f = h5py.File(savefile, 'w')
     i = 1
     for img,cls in zip(X, y):
         f.create_dataset('img_' + str(i), data=img, compression='gzip')
         f.create_dataset('cls_' + str(i), data=cls)
-        pm.advance()
+        pb.advance()
         i += 1
     f.create_dataset('num_images', data=i)
     f.create_dataset('features', data=features)
@@ -157,7 +157,7 @@ def check_data_set(model, h5file, sample=None):
     Y = to_categorical(y, num_classes)
     loss, acc = model.evaluate(X, Y)
     print("Data shape:", X.shape)
-    print("accuracy   = %.6f loss = %.6f" % (acc, loss))
+    print("accuracy = %.6f loss = %.6f" % (acc, loss))
     return acc, loss
 
 def stddev_scaling(X):
@@ -280,30 +280,60 @@ def flat_gen(g):
         X_batch_flat = X_batch.reshape(X_batch.shape[0], np.prod(X_batch.shape[1:]))
         yield X_batch_flat, Y_batch
 
+# This one stopped working ... !?
+# Use the following one
 def check_img_dups(h5file_list):
-    dig = {}
+    dig = dict()
     for h5file in h5file_list:
-        f = h5py.File(h5file, 'r')
-        num_images = int(f.get('num_images')[()])
-        pm = ProgressBar(num_images)
-        for i in range(num_images):
-            img_key = 'img_' + str(i)
-            a = np.array(f.get(img_key))
-            a.flags.writeable = False
-            s = str(a.data)
-            md = hashlib.sha512()
-            md.update(s)
-            key = md.hexdigest()
-            if not key in dig:
-                dig[key] = []
-            dig[key].append(i)
-            pm.advance()
-        f.close()
+        with h5py.File(h5file,'r') as f:
+            num_images = int(f.get('num_images')[()])
+            pb = ProgressBar(num_images)
+            for i in range(num_images):
+                pb.advance()
+                img_key = 'img_' + str(i)
+                a = np.array(f.get(img_key))
+                a.flags.writeable = False
+                s = str(a.data).encode("utf-8")
+                md = hashlib.sha512()
+                md.update(s)
+                key = md.hexdigest()
+                if not key in dig:
+                    dig[key] = []
+                dig[key].append(i)
+                count = len(dig[key])
+                if count >= 2:
+                    print("Dups: ", count, dig[key])
+                    return
 
     print("dict length =", len(dig))
+    print("Looks good")
 
-    for key in dig:
-        count = len(dig[key])
-        if count >= 2:
-            print("Dups: ", count, dig[key])
+def test_uniqueness(files):
+    dig = dict()
+    for file in files:
+        with h5py.File(file,'r') as f:
+            num_images = f.get('num_images')[()]
+            pb = ProgressBar(num_images)
+            print(file)
+            print("Num images:", num_images)
+            for i in range(0,num_images):
+                pb.advance()
+                img_key = f'img_{i}'
+                cls_key = f'cls_{i}'
+                tab_key = f'tab_{i}'
+                a = np.array(f.get(img_key))
+                #img = a.tostring()
+                img = a.tobytes()
+                #img = str(a)
+                if not img in dig:
+                    dig[img] = []
+                dig[img].append((file,i))
+                count = len(dig[img])
+                if count >= 2:
+                    print(f"Dups: {dig[img]}")
+                    return
+
+    print("dict length =", len(dig))
+    print("Looks good")
+
 
