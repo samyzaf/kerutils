@@ -182,8 +182,7 @@ def h5open(hfile, mode="r"):
     f = h5py.File(hfile, mode)
     return f
 
-
-def download(url, target=None, decompress=True):
+def download(url, target=None, decompress=False):
     if not target:
         target = os.path.split(url)[1]
     response = requests.get(url)
@@ -196,7 +195,7 @@ def download(url, target=None, decompress=True):
             target = unzip(target)
             os.remove(ztarget)
         else:
-            raise Exception(f"Unsupported decompression: {target}")
+            raise Exception(f"Unsupported compression type: {target}")
     return target
 
 url_get = download
