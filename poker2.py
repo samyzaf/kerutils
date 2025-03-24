@@ -7,6 +7,7 @@ import numpy as np
 import random
 import h5py
 from ezprogbar import ProgressBar
+from .dlutils import download
 
 suit = {
     1: 'h',
@@ -75,6 +76,7 @@ def gen_hand(h, type='RGB'):
     return img
 
 def sort_data():
+    download("https://samyzaf.com/ML/poker2/pool.csv")
     f = open("pool.csv")
     tab = dict((i,[]) for i in range(10))
     done = set()
@@ -124,6 +126,7 @@ def sort_data():
     f.close()
 
 def gen_figs():
+    download("https://samyzaf.com/ML/poker2/hands.csv")
     f = open('hands.csv')
     i = 1
     for line in f:
@@ -142,7 +145,7 @@ def gen_figs():
     f.close()
 
 def test_h5_file(h5file):
-    with h5py.File(h5file,'r') as f:
+    with h5py.File(h5file, 'r') as f:
         num_images = f.get('num_images')[()]
         print("Num images:", num_images)
         for i in range(num_images):
@@ -166,3 +169,4 @@ def test_h5_file(h5file):
                 plt.savefig(fig)
             plt.clf()
             plt.close()
+
